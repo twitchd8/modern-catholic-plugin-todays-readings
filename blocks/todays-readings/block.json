@@ -1,0 +1,34 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "usccb-todays-readings/todays-readings",
+	"version": "1.0.0",
+	"title": "Today’s Readings",
+	"category": "widgets",
+	"icon": "book-alt",
+	"description": "Displays the current daily Mass readings from the USCCB RSS feed.",
+	"keywords": [ "USCCB", "Mass", "Scripture", "readings" ],
+	"textdomain": "usccb-todays-readings",
+	"attributes": {
+		"heading": {
+			"type": "string",
+			"default": "Today’s Readings"
+		},
+		"showDescription": {
+			"type": "boolean",
+			"default": true
+		}
+	},
+	"supports": {
+		"align": [ "wide", "full" ],
+		"html": false,
+		"spacing": {
+			"margin": true,
+			"padding": true
+		}
+	},
+	"editorScript": "file:./index.js",
+	"style": "file:./style.css",
+	"render": "file:./render.php"
+}
+

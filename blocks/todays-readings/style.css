@@ -1,0 +1,25 @@
+.wp-block-usccb-todays-readings-todays-readings {
+	border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+	border-radius: 0.75rem;
+	padding: clamp(1.25rem, 3vw, 2rem);
+}
+
+.usccb-todays-readings__heading,
+.usccb-todays-readings__title {
+	margin-top: 0;
+}
+
+.usccb-todays-readings__date {
+	font-size: 0.875em;
+	opacity: 0.75;
+}
+
+.usccb-todays-readings__description > :last-child,
+.usccb-todays-readings__source {
+	margin-bottom: 0;
+}
+
+.usccb-todays-readings__source {
+	font-weight: 600;
+}
+
