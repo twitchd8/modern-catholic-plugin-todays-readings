@@ -10,6 +10,99 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Returns validated plugin settings.
+ *
+ * @return array
+ */
+function usccb_todays_readings_get_settings() {
+	$settings = get_option( USCCB_TODAYS_READINGS_SETTINGS_OPTION, array() );
+	$settings = is_array( $settings ) ? $settings : array();
+
+	return array(
+		'refresh_time' => isset( $settings['refresh_time'] ) && preg_match( '/^(?:[01]\d|2[0-3]):[0-5]\d$/', $settings['refresh_time'] )
+			? $settings['refresh_time']
+			: '03:00',
+	);
+}
+
+/**
+ * Calculates the next selected refresh time in the WordPress site timezone.
+ *
+ * @return int Unix timestamp.
+ */
+function usccb_todays_readings_next_refresh_timestamp() {
+	$settings = usccb_todays_readings_get_settings();
+	$timezone = wp_timezone();
+	$now      = new DateTimeImmutable( 'now', $timezone );
+	$next     = DateTimeImmutable::createFromFormat(
+		'!Y-m-d H:i',
+		$now->format( 'Y-m-d' ) . ' ' . $settings['refresh_time'],
+		$timezone
+	);
+
+	if ( ! $next ) {
+		return time() + HOUR_IN_SECONDS;
+	}
+
+	if ( $next <= $now ) {
+		$next = $next->modify( '+1 day' );
+	}
+
+	return $next->getTimestamp();
+}
+
+/**
+ * Adds one bounded, non-sensitive diagnostic record.
+ *
+ * @param string $level   Log level.
+ * @param string $event   Stable event name.
+ * @param string $message Human-readable message.
+ * @param array  $context Non-sensitive scalar context.
+ */
+function usccb_todays_readings_log( $level, $event, $message, $context = array() ) {
+	$allowed_levels = array( 'debug', 'info', 'warning', 'error' );
+	$level          = in_array( $level, $allowed_levels, true ) ? $level : 'info';
+	$safe_context   = array();
+
+	foreach ( is_array( $context ) ? $context : array() as $key => $value ) {
+		if ( is_scalar( $value ) || null === $value ) {
+			$safe_context[ sanitize_key( $key ) ] = sanitize_text_field( (string) $value );
+		}
+	}
+
+	$log = get_option( USCCB_TODAYS_READINGS_LOG_OPTION, array() );
+	$log = is_array( $log ) ? $log : array();
+	array_unshift(
+		$log,
+		array(
+			'timestamp' => time(),
+			'level'     => $level,
+			'event'     => sanitize_key( $event ),
+			'message'   => sanitize_text_field( $message ),
+			'context'   => $safe_context,
+		)
+	);
+
+	update_option( USCCB_TODAYS_READINGS_LOG_OPTION, array_slice( $log, 0, 50 ), false );
+}
+
+/**
+ * Clears structured and feed caches.
+ *
+ * @param bool $clear_status Whether to clear the latest status record.
+ */
+function usccb_todays_readings_clear_cache( $clear_status = true ) {
+	delete_option( USCCB_TODAYS_READINGS_CACHE_OPTION );
+	delete_transient( 'usccb_todays_readings_refresh_lock' );
+	delete_transient( 'feed_' . md5( USCCB_TODAYS_READINGS_FEED_URL ) );
+	delete_transient( 'feed_mod_' . md5( USCCB_TODAYS_READINGS_FEED_URL ) );
+
+	if ( $clear_status ) {
+		delete_option( USCCB_TODAYS_READINGS_STATUS_OPTION );
+	}
+}
+
+/**
  * Returns the request headers used by background refreshes.
  *
  * @return array
@@ -46,19 +139,39 @@ function usccb_todays_readings_fetch_url( $url ) {
 	);
 
 	if ( is_wp_error( $response ) ) {
+		usccb_todays_readings_log( 'error', 'http_transport_error', $response->get_error_message(), array( 'url' => $url ) );
 		return $response;
 	}
 
 	$status = wp_remote_retrieve_response_code( $response );
 	if ( 200 !== $status ) {
-		return new WP_Error(
-			'usccb_http_error',
-			sprintf(
+		$body      = wp_remote_retrieve_body( $response );
+		$challenge = 403 === $status && false !== stripos( $body, '<title>Checking connection</title>' );
+		$message   = $challenge
+			? __( 'USCCB returned HTTP 403 with a browser connection challenge.', 'usccb-todays-readings' )
+			: sprintf(
 				/* translators: %d: HTTP status code. */
 				__( 'USCCB returned HTTP %d.', 'usccb-todays-readings' ),
 				$status
+			);
+		$error     = new WP_Error(
+			'usccb_http_error',
+			$message,
+			array(
+				'status'    => $status,
+				'url'       => $url,
+				'challenge' => $challenge,
 			)
 		);
+
+		usccb_todays_readings_log(
+			'error',
+			$challenge ? 'browser_challenge' : 'http_error',
+			$message,
+			array( 'status' => $status, 'url' => $url )
+		);
+
+		return $error;
 	}
 
 	return wp_remote_retrieve_body( $response );
@@ -439,13 +552,15 @@ function usccb_todays_readings_build_cache() {
 /**
  * Runs the locked background refresh and keeps the previous cache on failure.
  *
+ * @param string $context Refresh trigger.
  * @return true|WP_Error
  */
-function usccb_todays_readings_refresh_cache() {
+function usccb_todays_readings_refresh_cache( $context = 'scheduled' ) {
 	if ( get_transient( 'usccb_todays_readings_refresh_lock' ) ) {
 		return new WP_Error( 'refresh_locked', __( 'A readings refresh is already running.', 'usccb-todays-readings' ) );
 	}
 
+	usccb_todays_readings_log( 'info', 'refresh_started', __( 'Readings cache refresh started.', 'usccb-todays-readings' ), array( 'trigger' => $context ) );
 	set_transient( 'usccb_todays_readings_refresh_lock', 1, 5 * MINUTE_IN_SECONDS );
 	$cache = usccb_todays_readings_build_cache();
 	delete_transient( 'usccb_todays_readings_refresh_lock' );
@@ -460,6 +575,17 @@ function usccb_todays_readings_refresh_cache() {
 			),
 			false
 		);
+
+		usccb_todays_readings_log(
+			'error',
+			'refresh_failed',
+			$cache->get_error_message(),
+			array( 'trigger' => $context, 'code' => $cache->get_error_code() )
+		);
+
+		if ( ! wp_next_scheduled( USCCB_TODAYS_READINGS_CRON_HOOK, array( 'retry' ) ) ) {
+			wp_schedule_single_event( time() + ( 6 * HOUR_IN_SECONDS ), USCCB_TODAYS_READINGS_CRON_HOOK, array( 'retry' ) );
+		}
 		return $cache;
 	}
 
@@ -478,8 +604,22 @@ function usccb_todays_readings_refresh_cache() {
 		false
 	);
 
+	usccb_todays_readings_log(
+		$cache['complete'] ? 'info' : 'warning',
+		$cache['complete'] ? 'refresh_succeeded' : 'refresh_incomplete',
+		$cache['complete']
+			? __( 'Readings cache refreshed successfully.', 'usccb-todays-readings' )
+			: __( 'Readings cache refreshed with missing dates.', 'usccb-todays-readings' ),
+		array(
+			'trigger'      => $context,
+			'window_start' => $cache['window_start'],
+			'window_end'   => $cache['window_end'],
+			'day_count'    => count( $cache['days'] ),
+		)
+	);
+
 	if ( ! $cache['complete'] && ! wp_next_scheduled( USCCB_TODAYS_READINGS_CRON_HOOK, array( 'retry' ) ) ) {
-		wp_schedule_single_event( time() + HOUR_IN_SECONDS, USCCB_TODAYS_READINGS_CRON_HOOK, array( 'retry' ) );
+		wp_schedule_single_event( time() + ( 6 * HOUR_IN_SECONDS ), USCCB_TODAYS_READINGS_CRON_HOOK, array( 'retry' ) );
 	}
 
 	return true;
