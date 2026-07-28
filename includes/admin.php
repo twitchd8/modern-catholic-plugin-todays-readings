@@ -55,7 +55,7 @@ function usccb_todays_readings_verify_admin_action() {
 }
 
 /**
- * Saves the selected daily refresh time.
+ * Saves the selected 30-day retrieval time.
  */
 function usccb_todays_readings_save_settings() {
 	usccb_todays_readings_verify_admin_action();
@@ -74,7 +74,7 @@ function usccb_todays_readings_save_settings() {
 	usccb_todays_readings_log(
 		'info',
 		'settings_updated',
-		__( 'The daily refresh time was updated.', 'usccb-todays-readings' ),
+		__( 'The 30-day retrieval time was updated.', 'usccb-todays-readings' ),
 		array( 'refresh_time' => $refresh_time, 'timezone' => wp_timezone_string() )
 	);
 
@@ -122,7 +122,7 @@ function usccb_todays_readings_admin_notice() {
 	$notice = sanitize_key( wp_unslash( $_GET['usccb_notice'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 	$status = get_option( USCCB_TODAYS_READINGS_STATUS_OPTION, array() );
 	$map    = array(
-		'settings_saved'  => array( 'success', __( 'Refresh settings saved and the daily event was rescheduled.', 'usccb-todays-readings' ) ),
+		'settings_saved'  => array( 'success', __( 'Retrieval settings saved and the 30-day event was rescheduled.', 'usccb-todays-readings' ) ),
 		'invalid_time'    => array( 'error', __( 'Enter a valid refresh time.', 'usccb-todays-readings' ) ),
 		'reload_succeeded'=> array( 'success', __( 'The readings cache was reloaded successfully.', 'usccb-todays-readings' ) ),
 		'reload_failed'   => array( 'error', ! empty( $status['message'] ) ? $status['message'] : __( 'The readings cache could not be reloaded.', 'usccb-todays-readings' ) ),
@@ -167,7 +167,7 @@ function usccb_todays_readings_render_settings_page() {
 	$status         = get_option( USCCB_TODAYS_READINGS_STATUS_OPTION, array() );
 	$log            = get_option( USCCB_TODAYS_READINGS_LOG_OPTION, array() );
 	$log            = is_array( $log ) ? $log : array();
-	$next_refresh   = wp_next_scheduled( USCCB_TODAYS_READINGS_CRON_HOOK, array( 'daily' ) );
+	$next_refresh   = wp_next_scheduled( USCCB_TODAYS_READINGS_CRON_HOOK, array( 'monthly' ) );
 	$retry_refresh  = wp_next_scheduled( USCCB_TODAYS_READINGS_CRON_HOOK, array( 'retry' ) );
 	$day_count      = ! empty( $cache['days'] ) && is_array( $cache['days'] ) ? count( $cache['days'] ) : 0;
 	$entry_count    = 0;
@@ -182,13 +182,13 @@ function usccb_todays_readings_render_settings_page() {
 			<?php
 			printf(
 				/* translators: %s: site timezone. */
-				esc_html__( 'The cache covers today through seven days from today. All times below use the WordPress site timezone: %s.', 'usccb-todays-readings' ),
+				esc_html__( 'The cache covers 90 calendar dates: today through 89 days from today. All times below use the WordPress site timezone: %s.', 'usccb-todays-readings' ),
 				esc_html( wp_timezone_string() )
 			);
 			?>
 		</p>
 
-		<h2><?php esc_html_e( 'Daily refresh', 'usccb-todays-readings' ); ?></h2>
+		<h2><?php esc_html_e( 'Monthly retrieval', 'usccb-todays-readings' ); ?></h2>
 		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 			<input type="hidden" name="action" value="usccb_todays_readings_save_settings">
 			<?php wp_nonce_field( 'usccb_todays_readings_admin_action' ); ?>
@@ -198,12 +198,12 @@ function usccb_todays_readings_render_settings_page() {
 					<td>
 						<input id="usccb-refresh-time" name="refresh_time" type="time" value="<?php echo esc_attr( $settings['refresh_time'] ); ?>" required>
 						<p class="description">
-							<?php esc_html_e( 'WP-Cron runs on the first site request at or after this time; it is not an exact-to-the-minute system scheduler.', 'usccb-todays-readings' ); ?>
+							<?php esc_html_e( 'The retrieval repeats every 30 days. WP-Cron runs on the first site request at or after the selected time.', 'usccb-todays-readings' ); ?>
 						</p>
 					</td>
 				</tr>
 			</table>
-			<?php submit_button( __( 'Save refresh time', 'usccb-todays-readings' ) ); ?>
+			<?php submit_button( __( 'Save retrieval time', 'usccb-todays-readings' ) ); ?>
 		</form>
 
 		<h2><?php esc_html_e( 'Cache status', 'usccb-todays-readings' ); ?></h2>
@@ -214,11 +214,25 @@ function usccb_todays_readings_render_settings_page() {
 				<tr><th><?php esc_html_e( 'Cached window', 'usccb-todays-readings' ); ?></th><td><?php echo ! empty( $cache['window_start'] ) ? esc_html( $cache['window_start'] . ' through ' . $cache['window_end'] ) : esc_html__( 'No cache is currently stored.', 'usccb-todays-readings' ); ?></td></tr>
 				<tr><th><?php esc_html_e( 'Coverage', 'usccb-todays-readings' ); ?></th><td><?php echo esc_html( sprintf( __( '%1$d date buckets, %2$d entries', 'usccb-todays-readings' ), $day_count, $entry_count ) ); ?></td></tr>
 				<tr><th><?php esc_html_e( 'Latest result', 'usccb-todays-readings' ); ?></th><td><?php echo ! empty( $status['ok'] ) ? esc_html__( 'Successful', 'usccb-todays-readings' ) : esc_html( $status['message'] ?? __( 'No refresh has run yet.', 'usccb-todays-readings' ) ); ?></td></tr>
-				<tr><th><?php esc_html_e( 'Next daily refresh', 'usccb-todays-readings' ); ?></th><td><?php echo esc_html( usccb_todays_readings_admin_date( $next_refresh ) ); ?></td></tr>
+				<tr><th><?php esc_html_e( 'Next scheduled retrieval', 'usccb-todays-readings' ); ?></th><td><?php echo esc_html( usccb_todays_readings_admin_date( $next_refresh ) ); ?></td></tr>
 				<?php if ( $retry_refresh ) : ?>
 					<tr><th><?php esc_html_e( 'Automatic retry', 'usccb-todays-readings' ); ?></th><td><?php echo esc_html( usccb_todays_readings_admin_date( $retry_refresh ) ); ?></td></tr>
 				<?php endif; ?>
 				<tr><th><?php esc_html_e( 'Outgoing User-Agent', 'usccb-todays-readings' ); ?></th><td><code><?php echo esc_html( usccb_todays_readings_request_headers()['User-Agent'] ); ?></code></td></tr>
+			</tbody>
+		</table>
+
+		<h2><?php esc_html_e( 'Retrieval methods', 'usccb-todays-readings' ); ?></h2>
+		<table class="widefat striped" style="max-width: 900px">
+			<tbody>
+				<tr>
+					<th><?php esc_html_e( 'RSS', 'usccb-todays-readings' ); ?></th>
+					<td><?php esc_html_e( 'WordPress fetch_feed() with SimplePie. This is built into WordPress; no hosted RSS proxy API is currently configured.', 'usccb-todays-readings' ); ?></td>
+				</tr>
+				<tr>
+					<th><?php esc_html_e( 'Calendar index', 'usccb-todays-readings' ); ?></th>
+					<td><?php esc_html_e( 'WordPress wp_safe_remote_get(). Calendar month pages provide the variants and liturgical colors that RSS may omit.', 'usccb-todays-readings' ); ?></td>
+				</tr>
 			</tbody>
 		</table>
 

@@ -1,20 +1,28 @@
 === USCCB Today’s Readings ===
 Requires at least: 7.0
 Requires PHP: 7.4
-Stable tag: 0.3.0
+Stable tag: 0.4.0
 License: GPLv2 or later
 
 Provides a dynamic WordPress block backed by a persistent cache of the USCCB
 calendar and RSS feed.
 
-The cache covers today through seven days from today, inclusive. Calendar days,
-not feed-item counts, determine the window. Multiple records on one date are
-retained individually with their liturgical color and reading citations.
+The rolling cache covers 90 calendar dates: today through 89 days from today.
+Calendar days, not feed-item counts, determine the window. Multiple records on
+one date are retained individually with their liturgical color and reading
+citations.
 
 Vigil Masses keep the following celebration date while being filed under the
 actual civil date of the Mass (the preceding late afternoon or evening).
 
 == Changelog ==
+
+= 0.4.0 =
+* Expand the rolling cache from eight to 90 calendar dates.
+* Retrieve calendar and RSS data every 30 days at the selected site-local time.
+* Migrate and remove the previous daily event automatically.
+* Identify WordPress fetch_feed and SimplePie as the built-in RSS method.
+* Log RSS retrieval failures separately from calendar connection challenges.
 
 = 0.3.0 =
 * Add a Settings > USCCB Readings administration screen.

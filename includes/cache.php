@@ -1,6 +1,6 @@
 <?php
 /**
- * Seven-day USCCB readings cache.
+ * Rolling 90-day USCCB readings cache.
  *
  * @package USCCB_Todays_Readings
  */
@@ -381,6 +381,12 @@ function usccb_todays_readings_get_feed_items() {
 	$feed = fetch_feed( USCCB_TODAYS_READINGS_FEED_URL );
 
 	if ( is_wp_error( $feed ) ) {
+		usccb_todays_readings_log(
+			'warning',
+			'rss_fetch_failed',
+			$feed->get_error_message(),
+			array( 'method' => 'WordPress fetch_feed / SimplePie' )
+		);
 		return array();
 	}
 
@@ -432,7 +438,7 @@ function usccb_todays_readings_old_entry_index( $cache ) {
 }
 
 /**
- * Refreshes today through today plus seven days, inclusive.
+ * Refreshes 90 calendar dates: today through 89 days from today.
  *
  * Vigil entries retain the solemnity date but use the preceding civil date as
  * their Mass date. One additional celebration date is scanned so that a Vigil
@@ -443,7 +449,7 @@ function usccb_todays_readings_old_entry_index( $cache ) {
 function usccb_todays_readings_build_cache() {
 	$timezone        = wp_timezone();
 	$start           = new DateTimeImmutable( 'today', $timezone );
-	$end             = $start->modify( '+7 days' );
+	$end             = $start->modify( '+89 days' );
 	$scan_end        = $end->modify( '+1 day' );
 	$months          = array();
 	$cursor          = $start->modify( 'first day of this month' );
@@ -469,7 +475,7 @@ function usccb_todays_readings_build_cache() {
 	}
 
 	$days = array();
-	for ( $offset = 0; $offset <= 7; $offset++ ) {
+	for ( $offset = 0; $offset < 90; $offset++ ) {
 		$date          = $start->modify( '+' . $offset . ' days' )->format( 'Y-m-d' );
 		$days[ $date ] = array(
 			'date'    => $date,
@@ -539,7 +545,7 @@ function usccb_todays_readings_build_cache() {
 	);
 
 	return array(
-		'schema_version' => 1,
+		'schema_version' => 2,
 		'generated_at'   => time(),
 		'window_start'   => $start->format( 'Y-m-d' ),
 		'window_end'     => $end->format( 'Y-m-d' ),
