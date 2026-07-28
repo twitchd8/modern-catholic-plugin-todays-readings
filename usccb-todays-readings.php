@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: USCCB Today’s Readings
- * Description: Provides a dynamic block that displays the current daily Mass readings from the USCCB RSS feed.
- * Version: 0.1.0
+ * Description: Caches and displays USCCB Mass readings, including multiple liturgies and their liturgical colors.
+ * Version: 0.2.0
  * Author: Andrew T. Schmitt
  * License: GPL-2.0-or-later
  * Text Domain: usccb-todays-readings
@@ -12,7 +12,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+define( 'USCCB_TODAYS_READINGS_VERSION', '0.2.0' );
 define( 'USCCB_TODAYS_READINGS_FEED_URL', 'https://www.usccb.org/bible/readings/rss/index.cfm' );
+define( 'USCCB_TODAYS_READINGS_CALENDAR_URL', 'https://bible.usccb.org/readings/calendar/' );
+define( 'USCCB_TODAYS_READINGS_CACHE_OPTION', 'usccb_todays_readings_week_cache' );
+define( 'USCCB_TODAYS_READINGS_STATUS_OPTION', 'usccb_todays_readings_cache_status' );
+define( 'USCCB_TODAYS_READINGS_CRON_HOOK', 'usccb_todays_readings_refresh_cache' );
+
+require_once __DIR__ . '/includes/cache.php';
 
 /**
  * Registers the Today’s Readings block.
@@ -20,21 +27,37 @@ define( 'USCCB_TODAYS_READINGS_FEED_URL', 'https://www.usccb.org/bible/readings/
 function usccb_todays_readings_register_block() {
 	register_block_type( __DIR__ . '/blocks/todays-readings' );
 }
-add_action( 'init', 'usccb_todays_readings_register_block' );
 
 /**
- * Refreshes only the USCCB feed hourly instead of every 12 hours.
- *
- * @param int    $lifetime Cache lifetime in seconds.
- * @param string $url      Feed URL.
- * @return int
+ * Ensures the daily refresh exists after plugin updates as well as activation.
  */
-function usccb_todays_readings_cache_lifetime( $lifetime, $url ) {
-	if ( USCCB_TODAYS_READINGS_FEED_URL === $url ) {
-		return HOUR_IN_SECONDS;
+function usccb_todays_readings_ensure_schedule() {
+	if ( ! wp_next_scheduled( USCCB_TODAYS_READINGS_CRON_HOOK ) ) {
+		wp_schedule_event( time() + MINUTE_IN_SECONDS, 'daily', USCCB_TODAYS_READINGS_CRON_HOOK );
 	}
-
-	return $lifetime;
 }
-add_filter( 'wp_feed_cache_transient_lifetime', 'usccb_todays_readings_cache_lifetime', 10, 2 );
 
+/**
+ * Schedules an immediate warm-up and the recurring daily refresh.
+ */
+function usccb_todays_readings_activate() {
+	usccb_todays_readings_ensure_schedule();
+
+	if ( ! get_option( USCCB_TODAYS_READINGS_CACHE_OPTION ) && ! wp_next_scheduled( USCCB_TODAYS_READINGS_CRON_HOOK, array( 'warmup' ) ) ) {
+		wp_schedule_single_event( time() + 5, USCCB_TODAYS_READINGS_CRON_HOOK, array( 'warmup' ) );
+	}
+}
+
+/**
+ * Removes scheduled refreshes. The last good cache is intentionally retained.
+ */
+function usccb_todays_readings_deactivate() {
+	wp_clear_scheduled_hook( USCCB_TODAYS_READINGS_CRON_HOOK );
+	delete_transient( 'usccb_todays_readings_refresh_lock' );
+}
+
+add_action( 'init', 'usccb_todays_readings_register_block' );
+add_action( 'init', 'usccb_todays_readings_ensure_schedule' );
+add_action( USCCB_TODAYS_READINGS_CRON_HOOK, 'usccb_todays_readings_refresh_cache' );
+register_activation_hook( __FILE__, 'usccb_todays_readings_activate' );
+register_deactivation_hook( __FILE__, 'usccb_todays_readings_deactivate' );

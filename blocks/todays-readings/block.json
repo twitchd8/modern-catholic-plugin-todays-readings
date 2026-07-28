@@ -2,11 +2,11 @@
 	"$schema": "https://schemas.wp.org/trunk/block.json",
 	"apiVersion": 3,
 	"name": "usccb-todays-readings/todays-readings",
-	"version": "1.0.0",
+	"version": "1.1.0",
 	"title": "Today’s Readings",
 	"category": "widgets",
 	"icon": "book-alt",
-	"description": "Displays the current daily Mass readings from the USCCB RSS feed.",
+	"description": "Displays all Mass reading options for today from the cached USCCB calendar and RSS feed.",
 	"keywords": [ "USCCB", "Mass", "Scripture", "readings" ],
 	"textdomain": "usccb-todays-readings",
 	"attributes": {
