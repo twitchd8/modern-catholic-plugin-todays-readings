@@ -2,11 +2,11 @@
 	"$schema": "https://schemas.wp.org/trunk/block.json",
 	"apiVersion": 3,
 	"name": "usccb-todays-readings/todays-readings",
-	"version": "1.1.0",
+	"version": "1.2.0",
 	"title": "Today’s Readings",
 	"category": "widgets",
 	"icon": "book-alt",
-	"description": "Displays all Mass reading options for today from the cached USCCB calendar and RSS feed.",
+	"description": "A dynamic placeholder that renders today’s cached Mass reading text and links.",
 	"keywords": [ "USCCB", "Mass", "Scripture", "readings" ],
 	"textdomain": "usccb-todays-readings",
 	"attributes": {
@@ -14,7 +14,32 @@
 			"type": "string",
 			"default": "Today’s Readings"
 		},
+		"layout": {
+			"type": "string",
+			"enum": [ "compact", "cards" ],
+			"default": "cards"
+		},
+		"showDate": {
+			"type": "boolean",
+			"default": true
+		},
+		"showLiturgicalColor": {
+			"type": "boolean",
+			"default": true
+		},
+		"showLectionary": {
+			"type": "boolean",
+			"default": true
+		},
+		"showCitations": {
+			"type": "boolean",
+			"default": true
+		},
 		"showDescription": {
+			"type": "boolean",
+			"default": true
+		},
+		"showSourceLink": {
 			"type": "boolean",
 			"default": true
 		}

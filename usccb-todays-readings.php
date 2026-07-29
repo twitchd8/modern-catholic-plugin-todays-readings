@@ -2,7 +2,7 @@
 /**
  * Plugin Name: USCCB Today’s Readings
  * Description: Caches and displays USCCB Mass readings, including multiple liturgies and their liturgical colors.
- * Version: 0.4.0
+ * Version: 0.5.0
  * Author: Andrew T. Schmitt
  * License: GPL-2.0-or-later
  * Text Domain: usccb-todays-readings
@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'USCCB_TODAYS_READINGS_VERSION', '0.4.0' );
+define( 'USCCB_TODAYS_READINGS_VERSION', '0.5.0' );
 define( 'USCCB_TODAYS_READINGS_FEED_URL', 'https://www.usccb.org/bible/readings/rss/index.cfm' );
 define( 'USCCB_TODAYS_READINGS_CALENDAR_URL', 'https://bible.usccb.org/readings/calendar/' );
 define( 'USCCB_TODAYS_READINGS_CACHE_OPTION', 'usccb_todays_readings_week_cache' );

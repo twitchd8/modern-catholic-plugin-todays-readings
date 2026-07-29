@@ -77,3 +77,47 @@
 	font-weight: 600;
 }
 
+.usccb-todays-readings.is-layout-compact {
+	border: 0;
+	border-radius: 0;
+	padding: 0;
+}
+
+.usccb-todays-readings.is-layout-compact .usccb-todays-readings__entries {
+	display: block;
+}
+
+.usccb-todays-readings.is-layout-compact .usccb-todays-readings__entry {
+	border: 0;
+	background: transparent;
+	padding: 0 0 1rem;
+}
+
+.usccb-todays-readings.is-layout-compact .usccb-todays-readings__entry + .usccb-todays-readings__entry {
+	border-top: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+	padding-top: 1rem;
+}
+
+.usccb-todays-readings.is-layout-compact .usccb-todays-readings__title {
+	margin-bottom: 0.4rem;
+	font-size: 1.1em;
+}
+
+.usccb-todays-readings.is-layout-compact .usccb-todays-readings__citations {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.25rem 0.6rem;
+	margin: 0.5rem 0;
+	padding: 0;
+	list-style: none;
+}
+
+.usccb-todays-readings.is-layout-compact .usccb-todays-readings__source {
+	margin-top: 0.5rem;
+}
+
+.usccb-todays-readings__editor-note {
+	margin: 0 0 0.75rem;
+	font-size: 12px;
+	opacity: 0.7;
+}
