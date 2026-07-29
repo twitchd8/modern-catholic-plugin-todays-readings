@@ -188,6 +188,31 @@ function usccb_todays_readings_render_settings_page() {
 			?>
 		</p>
 
+		<div class="notice notice-info inline" style="max-width: 900px; margin: 20px 0; padding: 12px 18px;">
+			<h2 style="margin-top: 0;"><?php esc_html_e( 'How to use this plugin', 'usccb-todays-readings' ); ?></h2>
+			<ol>
+				<li><?php esc_html_e( 'Open a page, template, or template part in the WordPress editor.', 'usccb-todays-readings' ); ?></li>
+				<li>
+					<?php
+					printf(
+						/* translators: %s: block name. */
+						esc_html__( 'Open the block inserter and search for “%s”.', 'usccb-todays-readings' ),
+						esc_html__( 'Today’s Readings', 'usccb-todays-readings' )
+					);
+					?>
+				</li>
+				<li><?php esc_html_e( 'Insert the block where the readings should appear, then use its sidebar settings to choose Text and links or Cards and select which details to display.', 'usccb-todays-readings' ); ?></li>
+				<li><?php esc_html_e( 'Save the page or template. The block remains a lightweight placeholder and automatically renders the cached readings for the current date.', 'usccb-todays-readings' ); ?></li>
+			</ol>
+			<p>
+				<strong><?php esc_html_e( 'Create Block Theme exports:', 'usccb-todays-readings' ); ?></strong>
+				<?php esc_html_e( 'The exported theme keeps the placeholder block, not a copy of the readings. Install and activate this plugin on every site that uses the exported theme.', 'usccb-todays-readings' ); ?>
+			</p>
+			<p style="margin-bottom: 0;">
+				<?php esc_html_e( 'If no cache is available, the block displays a fallback link to the corresponding USCCB readings page.', 'usccb-todays-readings' ); ?>
+			</p>
+		</div>
+
 		<h2><?php esc_html_e( 'Monthly retrieval', 'usccb-todays-readings' ); ?></h2>
 		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 			<input type="hidden" name="action" value="usccb_todays_readings_save_settings">

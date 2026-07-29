@@ -1,7 +1,7 @@
 === USCCB Today’s Readings ===
 Requires at least: 7.0
 Requires PHP: 7.4
-Stable tag: 0.5.0
+Stable tag: 0.5.1
 License: GPLv2 or later
 
 Provides a dynamic WordPress block backed by a persistent cache of the USCCB
@@ -16,6 +16,10 @@ Vigil Masses keep the following celebration date while being filed under the
 actual civil date of the Mass (the preceding late afternoon or evening).
 
 == Changelog ==
+
+= 0.5.1 =
+* Add block usage and Create Block Theme export guidance to the settings page.
+* Explain the no-cache fallback behavior.
 
 = 0.5.0 =
 * Make the Today’s Readings block an explicit dynamic text-and-links placeholder.
