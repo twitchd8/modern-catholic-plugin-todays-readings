@@ -1,11 +1,16 @@
-=== USCCB Today’s Readings ===
+=== Modern Catholic – Today’s Readings ===
 Requires at least: 7.0
 Requires PHP: 7.4
 Stable tag: 0.5.1
-License: GPLv2 or later
+License: GPLv3
+License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
 Provides a dynamic WordPress block backed by a persistent cache of the USCCB
 calendar and RSS feed.
+
+This plugin is part of the Modern Catholic suite. Retrieval is currently
+dormant because the upstream USCCB feed presents browser verification to
+server-side requests. Existing cached readings remain available.
 
 The rolling cache covers 90 calendar dates: today through 89 days from today.
 Calendar days, not feed-item counts, determine the window. Multiple records on
