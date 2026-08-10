@@ -1,10 +1,12 @@
 <?php
 /**
- * Plugin Name: USCCB Today’s Readings
- * Description: Caches and displays USCCB Mass readings, including multiple liturgies and their liturgical colors.
+ * Plugin Name: Modern Catholic – Today’s Readings
+ * Plugin URI: https://github.com/twitchd8/modern-catholic-plugin-todays-readings
+ * Description: Caches and displays USCCB Mass readings for Modern Catholic parish websites, including multiple liturgies and their liturgical colors.
  * Version: 0.5.1
  * Author: Andrew T. Schmitt
- * License: GPL-2.0-or-later
+ * License: GPL-3.0-only
+ * License URI: https://www.gnu.org/licenses/gpl-3.0.html
  * Text Domain: usccb-todays-readings
  */
 
