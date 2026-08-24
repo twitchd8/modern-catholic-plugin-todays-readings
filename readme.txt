@@ -1,7 +1,7 @@
 === Modern Catholic – Today’s Readings ===
 Requires at least: 7.0
 Requires PHP: 7.4
-Stable tag: 0.5.2
+Stable tag: 0.5.3
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -21,6 +21,10 @@ Vigil Masses keep the following celebration date while being filed under the
 actual civil date of the Mass (the preceding late afternoon or evening).
 
 == Changelog ==
+
+= 0.5.3 =
+* Adopt shared Modern Catholic Surface, Foreground, Muted, and Border roles for block structure.
+* Preserve plugin-owned green, red, violet, rose, and white-gold liturgical colors.
 
 = 0.5.2 =
 * Add a fully formatted GitHub README with Modern Catholic branding, compatibility badges, upstream-status guidance, and GPL-3.0-only licensing.

@@ -48,6 +48,11 @@ The block is dynamic: reading data is not embedded in saved post, page, template
 
 ## Changelog
 
+### 0.5.3
+
+- Adopt shared Modern Catholic Surface, Foreground, Muted, and Border roles for block structure.
+- Preserve plugin-owned green, red, violet, rose, and white-gold liturgical colors.
+
 ### 0.5.2
 
 - Add a fully formatted GitHub README with Modern Catholic branding, compatibility badges, upstream-status guidance, and GPL-3.0-only licensing.
